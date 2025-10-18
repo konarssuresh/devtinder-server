@@ -1,0 +1,19 @@
+{
+  "name": "dev-tinder-backend",
+  "version": "1.0.0",
+  "description": "this is backend for devtinder. tinder for devs",
+  "main": "src/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/app.js",
+    "serve": "node src/app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
