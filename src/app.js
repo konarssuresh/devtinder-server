@@ -12,7 +12,8 @@ app.post("/signup", async (req, res) => {
     await user.save();
     res.status(201).send("user created successfully");
   } catch (e) {
-    res.status(400).send("Invalid request ");
+    console.log(e);
+    res.status(400).send(e.message);
   }
 });
 
@@ -82,6 +83,7 @@ app.patch("/user", async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(id, data, {
       returnDocument: "after",
+      runValidators: true,
     });
     if (!user) {
       res.status(404).send("User not found");
@@ -90,7 +92,7 @@ app.patch("/user", async (req, res) => {
     }
   } catch (e) {
     console.log(e);
-    res.status(500).send("something went wrong");
+    res.status(500).send(e.message);
   }
 });
 
