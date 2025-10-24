@@ -44,11 +44,9 @@ app.post("/login", async (req, res) => {
     let { emailId, password } = req.body;
     let user = await User.findOne({ emailId });
     if (user) {
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      const isPasswordValid = await user.validatePassword(password);
       if (isPasswordValid) {
-        const jwtToken = jwt.sign({ _id: user._id }, "secret_key", {
-          expiresIn: "7d",
-        });
+        const jwtToken = user.getJWT();
         res.cookie("token", jwtToken);
         res.send("login successful");
       } else {
@@ -73,9 +71,6 @@ app.get("/profile", validateUser, async (req, res) => {
 });
 
 app.post("/sendConnectionRequest", validateUser, async (req, res) => {
-  console.log(
-    `${req.user.firstName} ${req.user.lastName} is sending connection request`
-  );
   res.send(
     `${req.user.firstName} ${req.user.lastName} is sending connection request`
   );
