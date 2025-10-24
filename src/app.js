@@ -7,10 +7,32 @@ const app = express();
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  const user = new User(req.body);
+  const ALLOWED_KEYS = [
+    "firstName",
+    "lastName",
+    "emailId",
+    "password",
+    "age",
+    "gender",
+    "photoUrl",
+    "about",
+    "skills",
+  ];
+
   try {
-    await user.save();
-    res.status(201).send("user created successfully");
+    let isValid = true;
+    for (let key in req.body) {
+      if (!ALLOWED_KEYS.includes(key)) {
+        isValid = false;
+        res.status(400).send(`invalid key ${key} in the request`);
+        break;
+      }
+    }
+    if (isValid) {
+      const user = new User(req.body);
+      await user.save();
+      res.status(201).send(user);
+    }
   } catch (e) {
     console.log(e);
     res.status(400).send(e.message);
@@ -79,16 +101,39 @@ app.delete("/user", async (req, res) => {
 app.patch("/user", async (req, res) => {
   const data = req.body;
   const id = data.id;
+  const ALLOWED_KEYS = [
+    "id",
+    "firstName",
+    "lastName",
+    "password",
+    "age",
+    "gender",
+    "photoUrl",
+    "about",
+    "skills",
+  ];
+
+  delete data.id;
 
   try {
-    const user = await User.findByIdAndUpdate(id, data, {
-      returnDocument: "after",
-      runValidators: true,
-    });
-    if (!user) {
-      res.status(404).send("User not found");
-    } else {
-      res.send(user);
+    let isValid = true;
+    for (let key in req.body) {
+      if (!ALLOWED_KEYS.includes(key)) {
+        isValid = false;
+        res.status(400).send(`invalid key ${key} in the request`);
+        break;
+      }
+    }
+    if (isValid) {
+      const user = await User.findByIdAndUpdate(id, data, {
+        returnDocument: "after",
+        runValidators: true,
+      });
+      if (!user) {
+        res.status(404).send("User not found");
+      } else {
+        res.send(user);
+      }
     }
   } catch (e) {
     console.log(e);
