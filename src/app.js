@@ -1,37 +1,53 @@
 const express = require("express");
 const { connectDb } = require("./config/database");
 const { User } = require("./models/user");
+const {
+  validateSignupData,
+  validateKeys,
+  validateLoginData,
+} = require("./utils/validators");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  const ALLOWED_KEYS = [
-    "firstName",
-    "lastName",
-    "emailId",
-    "password",
-    "age",
-    "gender",
-    "photoUrl",
-    "about",
-    "skills",
-  ];
+  const ALLOWED_KEYS = ["firstName", "lastName", "emailId", "password"];
 
   try {
-    let isValid = true;
-    for (let key in req.body) {
-      if (!ALLOWED_KEYS.includes(key)) {
-        isValid = false;
-        res.status(400).send(`invalid key ${key} in the request`);
-        break;
+    validateSignupData(req);
+    validateKeys(req, ALLOWED_KEYS);
+    const { password, firstName, lastName, emailId } = req.body;
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
+    await user.save();
+    res.status(201).send(user);
+  } catch (e) {
+    console.log(e);
+    res.status(400).send(e.message);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    validateLoginData(req);
+    let { emailId, password } = req.body;
+    let user = await User.findOne({ emailId });
+    if (user) {
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (isPasswordValid) {
+        res.send("Login successful");
+      } else {
+        res.status(400).send("invalid emailid or password");
       }
-    }
-    if (isValid) {
-      const user = new User(req.body);
-      await user.save();
-      res.status(201).send(user);
+    } else {
+      res.status(400).send("invalid emailid or password");
     }
   } catch (e) {
     console.log(e);
