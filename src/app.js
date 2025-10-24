@@ -1,4 +1,6 @@
 const express = require("express");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 const { connectDb } = require("./config/database");
 const { User } = require("./models/user");
 const {
@@ -11,6 +13,7 @@ const bcrypt = require("bcrypt");
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
   const ALLOWED_KEYS = ["firstName", "lastName", "emailId", "password"];
@@ -42,12 +45,37 @@ app.post("/login", async (req, res) => {
     if (user) {
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (isPasswordValid) {
-        res.send("Login successful");
+        const jwtToken = jwt.sign({ _id: user._id }, "secret_key");
+        res.cookie("token", jwtToken);
+        res.send("login successful");
       } else {
         res.status(400).send("invalid emailid or password");
       }
     } else {
       res.status(400).send("invalid emailid or password");
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(400).send(e.message);
+  }
+});
+
+app.get("/profile", async (req, res) => {
+  try {
+    const { token } = req.cookies;
+    if (!token) {
+      throw new Error("Invalid token");
+    }
+    const { _id } = jwt.verify(token, "secret_key");
+    if (!_id) {
+      throw new Error("Invalid token");
+    }
+
+    const user = await User.findById(_id);
+    if (!user) {
+      res.status(404).send("User not found");
+    } else {
+      res.send(user);
     }
   } catch (e) {
     console.log(e);
