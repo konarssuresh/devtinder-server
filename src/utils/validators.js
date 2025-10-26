@@ -24,6 +24,34 @@ const validateKeys = (req, keys) => {
   }
 };
 
-const validateLoginData = (req) => {};
+const validateLoginData = (req) => {
+  const { emailId, password } = req.body;
+  if (!emailId || !password) {
+    throw new Error("Invalid request");
+  }
+};
 
-module.exports = { validateKeys, validateSignupData, validateLoginData };
+const validateUpdateprofile = (req) => {
+  const ALLOWED_KEYS = ["firstName", "lastName", "photoUrl", "about", "skills"];
+
+  validateKeys(req, ALLOWED_KEYS);
+};
+
+const validatePassword = (req) => {
+  validateKeys(req, ["password"]);
+  const { password } = req.body;
+  if (!password) {
+    throw new Error("password is required");
+  }
+  if (!validator.isStrongPassword(password)) {
+    throw new Error("not a strong password");
+  }
+};
+
+module.exports = {
+  validateKeys,
+  validateSignupData,
+  validateLoginData,
+  validateUpdateprofile,
+  validatePassword,
+};
