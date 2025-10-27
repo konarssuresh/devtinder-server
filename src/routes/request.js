@@ -52,4 +52,35 @@ requestRouter.post(
   }
 );
 
+requestRouter.post(
+  "/request/review/:status/:requestId",
+  validateUser,
+  async (req, res) => {
+    try {
+      let loggedInUser = req.user;
+      let { status, requestId } = req.params;
+
+      let ALLOWED_VALUES = ["accepted", "rejected"];
+      if (!ALLOWED_VALUES.includes(status)) {
+        throw new Error("Status not valid !!!");
+      }
+
+      let request = await ConnectionRequest.findOne({
+        toUserId: loggedInUser._id,
+        status: "interested",
+        _id: requestId,
+      });
+      if (!request) {
+        throw new Error("Connection request is invalid !!!");
+      }
+
+      request.status = status;
+      const data = await request.save();
+      res.json({ message: "Connection request updated succesfully", data });
+    } catch (e) {
+      res.status(400).send("Error -" + e.message);
+    }
+  }
+);
+
 module.exports = requestRouter;

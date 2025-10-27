@@ -14,8 +14,7 @@
 
 ## connectionRequestRouter
 
-- POST /request/send/interested/:profileid
-- POST /request/seng/ignore/:profileid
+- POST /request/send/:status/:profileid
 - POST /request/review/accepted/:requestId
 - POST /request/review/rejected/:requestId
 
